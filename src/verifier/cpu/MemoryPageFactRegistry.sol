@@ -233,7 +233,10 @@ contract MemoryPageFactRegistry is FactRegistry, MemoryPageFactRegistryConstants
                             add(sub(addr, 1), mulmod(mload(add(valuesPtr, 0xc0)), alpha, prime)),
                             minus_z
                         ),
-                        add(add(addr, mulmod(mload(add(valuesPtr, 0xe0)), alpha, prime)), minus_z),
+                        add(
+                            add(addr, mulmod(mload(add(valuesPtr, 0xe0)), alpha, prime)), 
+                            minus_z
+                        ),
                         prime
                     ),
                     prime
