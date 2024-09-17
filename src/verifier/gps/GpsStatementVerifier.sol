@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -33,13 +33,15 @@ contract GpsStatementVerifier is
     MemoryPageFactRegistry memoryPageFactRegistry;
     CairoVerifierContract[] cairoVerifierContractAddresses;
 
-    uint256 internal constant N_BUILTINS = 9;
+    uint256 internal constant N_BUILTINS = 11;
     uint256 internal constant N_MAIN_ARGS = N_BUILTINS;
     uint256 internal constant N_MAIN_RETURN_VALUES = N_BUILTINS;
     // Cairo verifier program hash.
     uint256 immutable hashedSupportedCairoVerifiers_;
     // Simple bootloader program hash.
     uint256 immutable simpleBootloaderProgramHash_;
+    // Applicative bootloader program hash.
+    uint256 immutable applicativeBootloaderProgramHash_;
 
     /*
       Constructs an instance of GpsStatementVerifier.
@@ -50,8 +52,9 @@ contract GpsStatementVerifier is
         address bootloaderProgramContract,
         address memoryPageFactRegistry_,
         address[] memory cairoVerifierContracts,
-        uint256 hashedSupportedCairoVerifiers,
         uint256 simpleBootloaderProgramHash,
+        uint256 applicativeBootloaderProgramHash,
+        uint256 hashedSupportedCairoVerifiers,
         address referenceVerifier,
         uint256 referralDurationSeconds
     ) public GpsOutputParser(referenceVerifier, referralDurationSeconds) {
@@ -63,17 +66,30 @@ contract GpsStatementVerifier is
         }
         hashedSupportedCairoVerifiers_ = hashedSupportedCairoVerifiers;
         simpleBootloaderProgramHash_ = simpleBootloaderProgramHash;
+        applicativeBootloaderProgramHash_ = applicativeBootloaderProgramHash;
     }
 
     function identify() external pure override returns (string memory) {
-        return "StarkWare_GpsStatementVerifier_2023_9";
+        return "StarkWare_GpsStatementVerifier_2024_10";
     }
 
     /*
       Returns the bootloader config.
     */
-    function getBootloaderConfig() external view returns (uint256, uint256) {
-        return (simpleBootloaderProgramHash_, hashedSupportedCairoVerifiers_);
+    function getBootloaderConfig()
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return (
+            simpleBootloaderProgramHash_,
+            applicativeBootloaderProgramHash_,
+            hashedSupportedCairoVerifiers_
+        );
     }
 
     /*
@@ -196,7 +212,7 @@ contract GpsStatementVerifier is
             N_MAIN_ARGS +
             N_MAIN_RETURN_VALUES +
             // Bootloader config size =
-            2 +
+            3 +
             // Number of tasks cell =
             1 +
             2 *
@@ -272,17 +288,19 @@ contract GpsStatementVerifier is
         {
             {
                 uint256 outputAddress = cairoAuxInput[OFFSET_OUTPUT_BEGIN_ADDR];
-                // Force that memory[outputAddress] and memory[outputAddress + 1] contain the
-                // bootloader config (which is 2 words size).
+                // Force that memory[outputAddress: outputAddress + 3] contain the bootloader config
+                // (which is 3 words size).
                 publicMemory[offset + 0] = outputAddress;
                 publicMemory[offset + 1] = simpleBootloaderProgramHash_;
                 publicMemory[offset + 2] = outputAddress + 1;
-                publicMemory[offset + 3] = hashedSupportedCairoVerifiers_;
-                // Force that memory[outputAddress + 2] = nTasks.
+                publicMemory[offset + 3] = applicativeBootloaderProgramHash_;
                 publicMemory[offset + 4] = outputAddress + 2;
-                publicMemory[offset + 5] = nTasks;
-                offset += 6;
-                outputAddress += 3;
+                publicMemory[offset + 5] = hashedSupportedCairoVerifiers_;
+                // Force that memory[outputAddress + 3] = nTasks.
+                publicMemory[offset + 6] = outputAddress + 3;
+                publicMemory[offset + 7] = nTasks;
+                offset += 8;
+                outputAddress += 4;
 
                 uint256[] calldata taskMetadataSlice = taskMetadata[METADATA_TASKS_OFFSET:];
                 for (uint256 task = 0; task < nTasks; task++) {

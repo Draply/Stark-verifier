@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ abstract contract LayoutSpecific is MemoryMap, StarkParameters, CpuPublicInputOf
         // "bitwise" memory segment.
         ctx[MM_INITIAL_BITWISE_ADDR] = publicInput[OFFSET_BITWISE_BEGIN_ADDR];
         validateBuiltinPointers(
-            ctx[MM_INITIAL_BITWISE_ADDR], publicInput[OFFSET_BITWISE_STOP_ADDR],
+            ctx[MM_INITIAL_BITWISE_ADDR], publicInput[OFFSET_BITWISE_STOP_PTR],
             BITWISE__RATIO, 5, nSteps, 'bitwise');
 
         ctx[MM_DILUTED_CHECK__PERMUTATION__PUBLIC_MEMORY_PROD] = 1;

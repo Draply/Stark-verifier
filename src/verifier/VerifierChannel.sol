@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -93,8 +93,6 @@ contract VerifierChannel is Prng {
                 }
                 // *targetPtr = fromMontgomery(fieldElement);
                 mstore(targetPtr, mulmod(fieldElement, K_MONTGOMERY_R_INV, K_MODULUS))
-                // emit ReadFieldElementEvent(fieldElement);
-                // log1(targetPtr, 0x20, 0x4bfcc54f35095697be2d635fb0706801e13637312eff0cedcdfc254b3b8c385e);
             }
         }
     }
@@ -198,8 +196,6 @@ contract VerifierChannel is Prng {
 
     function readHash(uint256 channelPtr, bool mix) internal pure returns (bytes32) {
         bytes32 val = readBytes(channelPtr, mix);
-        // emit ReadHashEvent(val);
-
         return val;
     }
 

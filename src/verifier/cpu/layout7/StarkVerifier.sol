@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -177,7 +177,6 @@ abstract contract StarkVerifier is
         ctx[MM_TRACE_GENERATOR] = fpow(genEvalDomain, ctx[MM_BLOW_UP_FACTOR]);
     }
 
-    // TODO(ilya): move this into initContext.
     function getPublicInputHash(uint256[] memory publicInput)
         internal
         pure
@@ -403,7 +402,6 @@ abstract contract StarkVerifier is
     */
     function computeFirstFriLayer(uint256[] memory ctx) internal view {
         adjustQueryIndicesAndPrepareEvalPoints(ctx);
-        // emit LogGas("Prepare evaluation points", gasleft());
         readQueryResponsesAndDecommit(
             ctx,
             getNColumnsInTrace(),
@@ -411,8 +409,6 @@ abstract contract StarkVerifier is
             getPtr(ctx, MM_TRACE_QUERY_RESPONSES),
             bytes32(ctx[MM_TRACE_COMMITMENT])
         );
-        // emit LogGas("Read and decommit trace", gasleft());
-
         if (hasInteraction()) {
             readQueryResponsesAndDecommit(
                 ctx,
@@ -421,7 +417,6 @@ abstract contract StarkVerifier is
                 getPtr(ctx, MM_TRACE_QUERY_RESPONSES + getNColumnsInTrace0()),
                 bytes32(ctx[MM_TRACE_COMMITMENT + 1])
             );
-            // emit LogGas("Read and decommit second trace", gasleft());
         }
 
         readQueryResponsesAndDecommit(
@@ -431,8 +426,6 @@ abstract contract StarkVerifier is
             getPtr(ctx, MM_COMPOSITION_QUERY_RESPONSES),
             bytes32(ctx[MM_OODS_COMMITMENT])
         );
-
-        // emit LogGas("Read and decommit composition", gasleft());
 
         address oodsAddress = oodsContractAddress;
         uint256 friQueue = getPtr(ctx, MM_FRI_QUEUE);
@@ -453,7 +446,6 @@ abstract contract StarkVerifier is
                 revert(0, returndatasize())
             }
         }
-        // emit LogGas("OODS virtual oracle", gasleft());
     }
 
     /*
@@ -514,13 +506,10 @@ abstract contract StarkVerifier is
         uint256[] memory proof,
         uint256[] memory publicInput
     ) internal view override {
-        // emit LogGas("Transmission", gasleft());
         uint256[] memory ctx = initVerifierParams(publicInput, proofParams);
         uint256 channelPtr = getChannelPtr(ctx);
 
         initChannel(channelPtr, getProofPtr(proof), getPublicInputHash(publicInput));
-        // emit LogGas("Initializations", gasleft());
-
         // Read trace commitment.
         ctx[MM_TRACE_COMMITMENT] = uint256(readHash(channelPtr, true));
 
@@ -538,8 +527,6 @@ abstract contract StarkVerifier is
 
         // Send constraint polynomial random element.
         VerifierChannel.sendFieldElements(channelPtr, 1, getPtr(ctx, MM_COMPOSITION_ALPHA));
-        // emit LogGas("Generate coefficients", gasleft());
-
         ctx[MM_OODS_COMMITMENT] = uint256(readHash(channelPtr, true));
 
         // Send Out of Domain Sampling point.
@@ -550,11 +537,8 @@ abstract contract StarkVerifier is
         for (uint256 i = lmmOodsValues; i < lmmOodsValues + getNOodsValues(); i++) {
             ctx[i] = VerifierChannel.readFieldElement(channelPtr, true);
         }
-        // emit LogGas("Read OODS commitments", gasleft());
         oodsConsistencyCheck(ctx);
-        // emit LogGas("OODS consistency check", gasleft());
         VerifierChannel.sendFieldElements(channelPtr, 1, getPtr(ctx, MM_OODS_ALPHA));
-        // emit LogGas("Generate OODS coefficients", gasleft());
         ctx[MM_FRI_COMMITMENTS] = uint256(VerifierChannel.readHash(channelPtr, true));
 
         uint256 nFriSteps = getFriStepSizes(ctx).length;
@@ -584,8 +568,6 @@ abstract contract StarkVerifier is
             getPtr(ctx, MM_FRI_QUEUE),
             FRI_QUEUE_SLOT_SIZE_IN_BYTES
         );
-        // emit LogGas("Send queries", gasleft());
-
         computeFirstFriLayer(ctx);
 
         friVerifyLayers(ctx);

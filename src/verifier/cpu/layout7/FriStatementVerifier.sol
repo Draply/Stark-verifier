@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -68,7 +68,6 @@ abstract contract FriStatementVerifier is
             ctx[MM_FRI_QUEUE + 3 * curPointIndex + 2] = point;
             // Invert point using inverse(point) == fpow(point, ord(point) - 1).
 
-            //TODO(ilya): check option to using reverse polynomial instead of inverse.
             point = fpow(point, groupOrderMinusOne);
             ctx[MM_FRI_QUEUE + 3 * curPointIndex + 1] = hornerEval(
                 coefsStart,

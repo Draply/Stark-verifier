@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ contract Fri is MemoryMap, MemoryAccessUtils, HornerEvaluator, FriLayer {
             uint256 point = ctx[MM_FRI_QUEUE + FRI_QUEUE_SLOT_SIZE * i + 2];
             // Invert point using inverse(point) == fpow(point, ord(point) - 1).
 
-            //TODO(ilya): check option to using reverse polynomial instead of inverse.
             point = fpow(point, groupOrderMinusOne);
             require(
                 hornerEval(coefsStart, point, friLastLayerDegBound) ==
@@ -57,7 +56,6 @@ contract Fri is MemoryMap, MemoryAccessUtils, HornerEvaluator, FriLayer {
             "MAX_STEP_SIZE is inconsistent in MemoryMap.sol and FriLayer.sol"
         );
         initFriGroups(friCtx);
-        // emit LogGas("FRI offset precomputation", gasleft());
         uint256 channelPtr = getChannelPtr(ctx);
         uint256 merkleQueuePtr = getMerkleQueuePtr(ctx);
 
@@ -98,9 +96,6 @@ contract Fri is MemoryMap, MemoryAccessUtils, HornerEvaluator, FriLayer {
                 friCosetSize
             );
 
-            // emit LogGas(
-            //     string(abi.encodePacked("FRI layer ", bytes1(uint8(48 + friStep)))), gasleft());
-
             // Layer is done, verify the current layer and move to next layer.
             // ctx[mmMerkleQueue: merkleQueueIdx) holds the indices
             // and values of the merkle leaves that need verification.
@@ -111,13 +106,9 @@ contract Fri is MemoryMap, MemoryAccessUtils, HornerEvaluator, FriLayer {
                 nLiveQueries
             );
 
-            // emit LogGas(
-            //     string(abi.encodePacked("Merkle of FRI layer ", bytes1(uint8(48 + friStep)))),
-            //     gasleft());
             friStep++;
         }
 
         verifyLastLayer(ctx, nLiveQueries);
-        // emit LogGas("last FRI layer", gasleft());
     }
 }

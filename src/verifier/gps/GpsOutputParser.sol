@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -104,10 +104,10 @@ contract GpsOutputParser is CpuPublicInputOffsetsBase, ReferableFactRegistry {
 
         uint256 taskMetadataOffset = METADATA_TASKS_OFFSET;
 
-        // Skip the 5 first output cells which contain the bootloader config, the number of tasks
-        // and the size and program hash of the first task. curAddr points to the output of the
-        // first task.
-        uint256 curAddr = outputStartAddress + 5;
+        // Skip the first 6 output cells, which contain the bootloader config (3 cells), the number
+        // of tasks and the size and program hash of the first task. curAddr points to the output of
+        // the first task.
+        uint256 curAddr = outputStartAddress + 6;
 
         // Skip the main page.
         uint256 curPage = FIRST_CONTINUOUS_PAGE_INDEX;

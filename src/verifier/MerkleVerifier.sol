@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -128,7 +128,6 @@ contract MerkleVerifier is IMerkleVerifier {
             // Update the proof pointer in the context.
             mstore(channelPtr, proofPtr)
         }
-        // emit LogBool(hash == root);
         require(hash == root, "INVALID_MERKLE_PROOF");
     }
 }

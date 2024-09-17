@@ -1,5 +1,5 @@
 /*
-  Copyright 2019-2023 StarkWare Industries Ltd.
+  Copyright 2019-2024 StarkWare Industries Ltd.
 
   Licensed under the Apache License, Version 2.0 (the "License").
   You may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
 */
 // SPDX-License-Identifier: Apache-2.0.
 pragma solidity ^0.6.12;
+pragma experimental ABIEncoderV2;
 
+import "./IMemoryPageRegistry.sol";
 import "../../components/FactRegistry.sol";
 
 contract MemoryPageFactRegistryConstants {
@@ -36,7 +38,11 @@ contract MemoryPageFactRegistryConstants {
   The fact consists of (pageType, prime, n, z, alpha, prod, memoryHash, address).
   Note that address is only available for CONTINUOUS_PAGE, and otherwise it is 0.
 */
-contract MemoryPageFactRegistry is FactRegistry, MemoryPageFactRegistryConstants {
+contract MemoryPageFactRegistry is
+    FactRegistry,
+    MemoryPageFactRegistryConstants,
+    IMemoryPageRegistry
+{
     event LogMemoryPageFactRegular(bytes32 factHash, uint256 memoryHash, uint256 prod);
     event LogMemoryPageFactContinuous(bytes32 factHash, uint256 memoryHash, uint256 prod);
 
@@ -135,6 +141,22 @@ contract MemoryPageFactRegistry is FactRegistry, MemoryPageFactRegistryConstants
     }
 
     /*
+      Receives a list of MemoryPageEntry. Each element in the list holds arguments for a seperate
+      call to registerContinuousMemoryPage.
+    */
+    function registerContinuousPageBatch(MemoryPageEntry[] calldata memoryPageEntries) external {
+        for (uint256 i = 0; i < memoryPageEntries.length; i++) {
+            registerContinuousMemoryPage(
+                memoryPageEntries[i].startAddr,
+                memoryPageEntries[i].values,
+                memoryPageEntries[i].z,
+                memoryPageEntries[i].alpha,
+                memoryPageEntries[i].prime
+            );
+        }
+    }
+
+    /*
       Registers a fact based on the given values, assuming continuous addresses.
       values should be [value at startAddr, value at (startAddr + 1), ...].
     */
@@ -147,6 +169,7 @@ contract MemoryPageFactRegistry is FactRegistry, MemoryPageFactRegistryConstants
         uint256 prime
     )
         public
+        override
         returns (
             bytes32 factHash,
             uint256 memoryHash,
@@ -233,10 +256,7 @@ contract MemoryPageFactRegistry is FactRegistry, MemoryPageFactRegistryConstants
                             add(sub(addr, 1), mulmod(mload(add(valuesPtr, 0xc0)), alpha, prime)),
                             minus_z
                         ),
-                        add(
-                            add(addr, mulmod(mload(add(valuesPtr, 0xe0)), alpha, prime)), 
-                            minus_z
-                        ),
+                        add(add(addr, mulmod(mload(add(valuesPtr, 0xe0)), alpha, prime)), minus_z),
                         prime
                     ),
                     prime
